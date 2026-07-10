@@ -1,0 +1,21 @@
+{
+  "name": "pen-agent",
+  "version": "0.1.0",
+  "description": "Automated penetration testing agent framework using opencode",
+  "license": "MIT",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "status": "node index.js --status",
+    "check": "node --check env-loader.js && node --check config.js && node --check index.js && node --check agent-loop.js && node --check runner.js && node --check supervisor.js && node --check whiteboard.js && node --check dashboard/server.js && node --check dashboard/server/archives.js && node --check dashboard/server/fs-utils.js && node --check dashboard/server/http.js",
+    "dashboard:server": "node dashboard/server.js",
+    "dashboard:dev": "npm --prefix dashboard/web run dev",
+    "dashboard:build": "npm --prefix dashboard/web run build",
+    "verify": "npm run check && npm run dashboard:build",
+    "proxy-server": "node proxy/proxy-server.js"
+  },
+  "dependencies": {
+    "chalk": "^5.3.0"
+  }
+}

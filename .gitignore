@@ -1,0 +1,39 @@
+# Dependencies
+node_modules/
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+
+# Runtime logs and agent artifacts
+.pen-agent/
+artifacts/
+artifact-archive/
+logs/
+*.log
+
+# Archived run data may contain local paths, flags, targets, and operator traces.
+归档/
+归档.zip
+*.zip
+
+# Generated reports, screenshots, and test output
+output/
+test-results/
+
+# Build output
+dist/
+dashboard/web/dist/
+proxy/build/
+proxy/proxy-client
+proxy/proxy-client-*
+*.exe
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+
+# Local scratch folders
+docs/
+backup/
