@@ -20,9 +20,9 @@ async function selectArchive(event: Event) {
 <template>
   <header class="app-header">
     <div class="brand">
-      <span class="brand-mark">SA</span>
+      <span class="brand-mark">AF</span>
       <div>
-        <strong>Smart Attack</strong>
+        <strong>AegisFlow</strong>
         <small>ThinkPHP 靶场</small>
       </div>
     </div>

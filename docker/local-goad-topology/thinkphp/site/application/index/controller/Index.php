@@ -30,7 +30,7 @@ class Index
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>ThinkPHP 5.0.12 Entry - Linux Enterprise Lab</title>
+  <title>AegisFlow</title>
   <style>
     :root { color-scheme: light; }
     body { font-family: Arial, sans-serif; margin: 40px; color: #17202a; background: #f7f9fb; }
@@ -44,7 +44,7 @@ class Index
 </head>
 <body>
   <main>
-    <h1>ThinkPHP 5.0.12 Entry Node</h1>
+    <h1>AegisFlow</h1>
     <p>This container is the DMZ entry point for the Docker Linux enterprise lab.</p>
     <p>Framework line: <code>ThinkPHP 5.0.12</code></p>
     <h2>Routes</h2>

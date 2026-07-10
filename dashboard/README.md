@@ -1,4 +1,4 @@
-# Smart Attack Dashboard
+# AegisFlow
 
 Dashboard 是本项目的本地展示系统，由 Node API 和 Vue 前端组成。它不直接保存 API key，也不直接实现模型调用；模型认证、agent 运行和真实任务执行仍由根目录的 `pen-agent` 与 `opencode` 负责。
 

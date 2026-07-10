@@ -1,4 +1,4 @@
-# Docker Linux Enterprise Lab
+# AegisFlow
 
 This is a Docker-based Linux enterprise network simulation. It does not try to
 run GOAD or Windows Active Directory in containers. The goal is to keep the same

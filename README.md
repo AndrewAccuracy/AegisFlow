@@ -1,4 +1,4 @@
-﻿# Smart Attack Team Scheduling Lab
+﻿# AegisFlow
 
 [![Node.js](https://img.shields.io/badge/Node.js-18%2B-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
 [![Vue](https://img.shields.io/badge/Vue-3-42b883?logo=vue.js&logoColor=white)](https://vuejs.org/)
@@ -6,7 +6,7 @@
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Scope](https://img.shields.io/badge/Scope-authorized%20labs%20only-red)](#security-and-ethics)
 
-Smart Attack Team Scheduling Lab is an agent orchestration and visualization system for authorized CTF labs, cyber ranges, and internal security exercises.
+AegisFlow is an agent orchestration and visualization system for authorized CTF labs, cyber ranges, and internal security exercises.
 
 The project combines a round-based `opencode` agent runner with a lightweight dashboard. The runner coordinates reconnaissance, validation, exploitation evidence, flags, notes, and handoff state. The dashboard turns those runtime artifacts into a clean operator view for demos, reviews, and continued development.
 
@@ -42,7 +42,7 @@ Most agent security demos either stop at a single exploit path or leave behind u
 - Make flags and artifacts visible without digging through raw logs.
 - Support both live runs and replayable historical demo snapshots.
 
-The current lab focus is a ThinkPHP target and a Smart Attack dashboard. Older Spring RCE lab work has been removed from the active path so the project can stay focused and easier to maintain.
+The current lab focus is a ThinkPHP target and an AegisFlow dashboard. Older Spring RCE lab work has been removed from the active path so the project can stay focused and easier to maintain.
 
 ## Preview
 
@@ -65,7 +65,7 @@ Dashboard overview:
 
 ```mermaid
 flowchart LR
-  User["Operator"] --> Dashboard["Smart Attack Dashboard"]
+  User["Operator"] --> Dashboard["AegisFlow"]
   Dashboard --> API["dashboard/server.js"]
   API --> Live[".pen-agent/ + artifacts/"]
   API --> Archive["归档/history/*"]

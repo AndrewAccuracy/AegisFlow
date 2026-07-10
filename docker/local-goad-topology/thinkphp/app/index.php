@@ -20,7 +20,7 @@ $services = [
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>ThinkPHP Entry - Linux Enterprise Lab</title>
+  <title>AegisFlow</title>
   <style>
     :root { color-scheme: light; }
     body { font-family: Arial, sans-serif; margin: 40px; color: #17202a; background: #f7f9fb; }
@@ -34,7 +34,7 @@ $services = [
 </head>
 <body>
   <main>
-    <h1>ThinkPHP Entry Node</h1>
+    <h1>AegisFlow</h1>
     <p>This container is the DMZ entry point for the Docker Linux enterprise lab.</p>
     <h2>Routes</h2>
     <table>
