@@ -1,117 +1,112 @@
-﻿# AegisFlow
+# AegisFlow
 
 [![Node.js](https://img.shields.io/badge/Node.js-18%2B-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
 [![Vue](https://img.shields.io/badge/Vue-3-42b883?logo=vue.js&logoColor=white)](https://vuejs.org/)
 [![Engine](https://img.shields.io/badge/Engine-opencode-111827)](https://opencode.ai/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Scope](https://img.shields.io/badge/Scope-authorized%20labs%20only-red)](#security-and-ethics)
+[![Scope](https://img.shields.io/badge/Scope-authorized%20labs%20only-red)](#安全与授权边界)
 
-AegisFlow is an agent orchestration and visualization system for authorized CTF labs, cyber ranges, and internal security exercises.
+AegisFlow 是一个面向授权 CTF、内网靶场、安全教学和演示复盘的 agent 编排与可视化平台。它用 `opencode run` 执行分轮安全任务，把过程中的资产、服务、凭据、flag、证据、日志、笔记和下一步判断沉淀为结构化状态，再通过 Dashboard 展示出来。
 
-The project combines a round-based `opencode` agent runner with a lightweight dashboard. The runner coordinates reconnaissance, validation, exploitation evidence, flags, notes, and handoff state. The dashboard turns those runtime artifacts into a clean operator view for demos, reviews, and continued development.
+> 本项目只用于明确授权的本地靶场、自有系统或内部演练。不要把它用于任何未授权目标、第三方系统或授权边界不清晰的环境。
 
-> This project is for authorized lab environments only. Do not use it against systems you do not own or do not have explicit permission to test.
+## 目录
 
-## Table Of Contents
-
-- [Why This Exists](#why-this-exists)
-- [Preview](#preview)
-- [Features](#features)
-- [Architecture](#architecture)
-- [Requirements](#requirements)
-- [Quick Start](#quick-start)
-- [Configuration](#configuration)
+- [当前结构](#当前结构)
+- [核心能力](#核心能力)
+- [运行链路](#运行链路)
+- [快速启动](#快速启动)
+- [配置说明](#配置说明)
+- [CLI 用法](#cli-用法)
 - [Dashboard](#dashboard)
-- [Demo Archives](#demo-archives)
-- [CLI Usage](#cli-usage)
-- [Project Structure](#project-structure)
-- [Development](#development)
-- [Testing](#testing)
-- [Security And Ethics](#security-and-ethics)
-- [Roadmap](#roadmap)
-- [Contributing](#contributing)
-- [License](#license)
+- [本地 Docker 靶场](#本地-docker-靶场)
+- [历史数据与演示快照](#历史数据与演示快照)
+- [测试与验证](#测试与验证)
+- [项目结构](#项目结构)
+- [开发约定](#开发约定)
+- [安全与授权边界](#安全与授权边界)
+- [常见问题](#常见问题)
+- [后续计划](#后续计划)
+- [许可证](#许可证)
 
-## Why This Exists
+## 当前结构
 
-Most agent security demos either stop at a single exploit path or leave behind unstructured logs that are hard to review. This project is built around a different workflow:
+当前仓库已经整理成四个主要部分：
 
-- Keep the agent inside explicit task boundaries.
-- Split work into auditable rounds.
-- Preserve evidence, decisions, problems, and next steps.
-- Make flags and artifacts visible without digging through raw logs.
-- Support both live runs and replayable historical demo snapshots.
+| 部分 | 位置 | 说明 |
+| --- | --- | --- |
+| Agent 编排核心 | `src/` | CLI 入口、配置解析、轮次调度、opencode runner、supervisor、whiteboard、flag 扫描和漏洞方向建议。 |
+| Dashboard 后端 | `dashboard/server.js`, `dashboard/server/` | 本地 API 服务，负责启动/停止/恢复任务、读取运行状态、管理历史快照和提供静态前端资源。 |
+| Dashboard 前端 | `dashboard/web/` | Vue 3 + Pinia + Vite 前端，展示启动页、总览、拓扑、时间线、发现、证据、flags、笔记、决策和协同状态。 |
+| 本地 Docker 靶场 | `docker/local-goad-topology/` | 唯一维护的 Docker 靶场，模拟 DMZ、Office / Ops、Core Services 三段 Linux 企业网络。 |
 
-The current lab focus is a ThinkPHP target and an AegisFlow dashboard. Older Spring RCE lab work has been removed from the active path so the project can stay focused and easier to maintain.
+需要特别说明两点：
 
-## Preview
+- 当前只有一个 Docker 靶场：`docker/local-goad-topology/`。其中 `mock-goad/` 只是该靶场目录里的辅助/遗留材料，并没有在 `docker-compose.yml` 里作为第二套靶场启动。
+- 当前只有一张静态靶场拓扑图：`docker/local-goad-topology/assets/topology.png`。Dashboard 里的“拓扑”页面是运行时根据 agent 发现生成的资产图，不是第二套靶场拓扑。
 
-Dashboard overview:
+## 核心能力
 
-![Dashboard overview](output/playwright/refactor-overview.png)
+- 轮次化 agent 执行：每一轮有目标、输出、结构化发现和停止条件。
+- `opencode run` 集成：模型和 provider 通过 `.env`、CLI 或 Dashboard 配置。
+- 实时 flag 扫描：输出流里出现的 flag 会写入 `artifacts/flags.json` 和 `artifacts/flags.txt`。
+- 结构化复盘：supervisor 和 whiteboard 会整理 hosts、services、credentials、access、intel、risks 和 next steps。
+- Dashboard 可视化：把实时运行和历史快照统一展示，便于演示、答辩和继续开发。
+- 历史快照：每次从 Dashboard 启动/停止/恢复任务时，会归档当前状态，支持回放。
+- 本地靶场：提供一个可控的 Docker Linux 企业网络，用于授权实验和演示。
 
-## Features
-
-- Round-based agent loop with clear stop points and handoff prompts.
-- `opencode run` integration without hard-coding a model provider into the frontend.
-- Local `.env` configuration for API keys, model, provider, and attach URL.
-- Real-time dashboard for status, topology, timeline, findings, evidence, flags, notes, decisions, and team handoff.
-- Historical archive selector for rehearsable demos under `归档/history/`.
-- Structured state in `.pen-agent/state.json` and normalized flag files in `artifacts/`.
-- Lightweight internal proxy utilities for explicitly authorized lab scenarios.
-- Safety-oriented defaults: secrets are ignored, dashboard does not expose API keys, and runtime artifacts are kept out of source control.
-
-## Architecture
+## 运行链路
 
 ```mermaid
 flowchart LR
-  User["Operator"] --> Dashboard["AegisFlow"]
+  Operator["操作者"] --> Dashboard["Dashboard 前端"]
+  Operator --> CLI["CLI: src/index.js"]
   Dashboard --> API["dashboard/server.js"]
-  API --> Live[".pen-agent/ + artifacts/"]
-  API --> Archive["归档/history/*"]
-  Dashboard --> Runner["index.js / agent-loop.js"]
-  Runner --> OpenCode["opencode serve"]
-  OpenCode --> Model["Model Provider"]
-  Runner --> Target["Authorized Lab Target"]
-  Runner --> Live
+  API --> CLI
+  CLI --> Loop["src/agent-loop.js"]
+  Loop --> Runner["src/runner.js"]
+  Runner --> OpenCode["opencode serve / run"]
+  OpenCode --> Model["模型服务"]
+  Loop --> Supervisor["src/supervisor.js"]
+  Loop --> Whiteboard["src/whiteboard.js"]
+  Loop --> Flags["flag scanner / store"]
+  Loop --> Target["授权目标 / 本地靶场"]
+  Whiteboard --> Runtime[".pen-agent/"]
+  Flags --> Artifacts["artifacts/"]
+  API --> Runtime
+  API --> Artifacts
+  API --> History["history/"]
+  API --> Legacy["归档/"]
 ```
 
-Runtime flow:
+典型流程：
 
-1. The operator configures `.env` and starts `opencode`.
-2. The dashboard reads non-secret runtime defaults from `/api/config`.
-3. A task starts through the dashboard or CLI.
-4. `index.js` initializes runtime directories and launches the round loop.
-5. `runner.js` invokes `opencode run`.
-6. `supervisor.js`, `whiteboard.js`, and flag helpers update structured state.
-7. The dashboard reads current state or a selected archive snapshot.
+1. 配置 `.env`，准备 provider、model、API key 和 `opencode` 地址。
+2. 启动 `opencode serve`。
+3. 从 Dashboard 或 CLI 启动任务。
+4. `src/index.js` 初始化 `.pen-agent/` 和 `artifacts/`。
+5. `src/agent-loop.js` 按轮次调用 `src/runner.js`。
+6. `src/runner.js` 调用 `opencode run`，并把输出写入 stream log。
+7. flag scanner 实时扫描输出，supervisor 提取结构化发现。
+8. whiteboard 更新当前态，Dashboard 读取并展示。
+9. Dashboard 启动新任务或任务结束时，把当前运行快照写入 `history/`。
 
-## Requirements
+## 快速启动
 
-- Node.js 18 or newer.
-- npm.
-- `opencode` installed and available in `PATH`.
-- A model provider API key, unless `opencode` is already authenticated.
-- An authorized lab target. Do not point this project at public third-party systems.
-
-## Quick Start
-
-### 1. Install dependencies
+### 1. 安装依赖
 
 ```bash
 npm install
 npm --prefix dashboard/web install
 ```
 
-### 2. Configure secrets
-
-Copy the local environment template:
+### 2. 配置环境变量
 
 ```bash
 cp .env.example .env
 ```
 
-Edit `.env` in the project root:
+编辑项目根目录的 `.env`：
 
 ```dotenv
 PEN_AGENT_API_KEY=<your-provider-api-key>
@@ -124,146 +119,235 @@ DASHBOARD_HOST=127.0.0.1
 DASHBOARD_PORT=3000
 ```
 
-Never commit `.env`. It is ignored by `.gitignore`.
+`.env` 已被 `.gitignore` 忽略，不要提交真实 key。
 
-### 3. Start opencode
+### 3. 启动 opencode
 
 ```bash
 opencode serve --port 4096
 ```
 
-You can also use the opencode web server:
+也可以使用：
 
 ```bash
 opencode web --hostname 0.0.0.0 --port 4096
 ```
 
-### 4. Start the dashboard
+### 4. 启动 Dashboard
 
-Development mode uses two terminals:
+开发模式需要两个终端。
+
+终端 1：
 
 ```bash
 npm run dashboard:server
 ```
 
+终端 2：
+
 ```bash
 npm run dashboard:dev
 ```
 
-Open:
+打开：
 
 ```text
 http://localhost:5173
 ```
 
-Production-style local mode:
+生产构建后的本地模式：
 
 ```bash
 npm run dashboard:build
 npm run dashboard:server
 ```
 
-Open:
+打开：
 
 ```text
 http://127.0.0.1:3000
 ```
 
-### 5. Run an authorized task
+### 5. 启动一次授权任务
 
-From the dashboard, use the start page and confirm the target, loops, and flag expectations.
+从 Dashboard 启动：进入“启动”页，填写目标、scope、循环次数、flag 数、模型和 attach URL，然后点击启动。
 
-From the CLI:
+从 CLI 启动：
 
 ```bash
-node index.js -t <target-host> -p <target-port> --attach http://localhost:4096
+node src/index.js -t <target-host> -p <target-port> --attach http://localhost:4096
 ```
 
-Example for a private lab hostname:
+示例：
 
 ```bash
-node index.js \
-  -t thinkphp.lab.local \
-  -p 80 \
+node src/index.js \
+  -t 127.0.0.1 \
+  -p 18080 \
+  --flags 1 \
   --min-loops 1 \
   --max-loops 8 \
   --stop-after-stale 2
 ```
 
-## Configuration
+查看当前状态：
 
-The recommended configuration path is the root `.env` file.
-
-| Variable | Description | Default |
-| --- | --- | --- |
-| `PEN_AGENT_API_KEY` | Provider API key used when opencode auth is not already configured. | empty |
-| `PEN_AGENT_PROVIDER` | Provider name written to opencode auth. | `deepseek` |
-| `PEN_AGENT_MODEL` | Default model used by CLI and dashboard. | `deepseek/deepseek-v4-flash` |
-| `PEN_AGENT_ATTACH_URL` | opencode backend URL. | `http://localhost:4096` |
-| `PEN_AGENT_AGENT` | Optional named opencode agent. | empty |
-| `DASHBOARD_HOST` | Dashboard API host. | `127.0.0.1` |
-| `DASHBOARD_PORT` | Dashboard API port. | `3000` |
-
-Configuration precedence:
-
-```text
-CLI arguments > shell environment > .env > project defaults
+```bash
+npm run status
 ```
 
-The dashboard only exposes non-secret configuration:
+## 配置说明
+
+配置优先级：
+
+```text
+CLI 参数 > shell 环境变量 > .env > 项目默认值
+```
+
+| 变量 | 说明 | 默认值 |
+| --- | --- | --- |
+| `PEN_AGENT_API_KEY` | provider API key，用于写入 opencode auth。 | 空 |
+| `PEN_AGENT_PROVIDER` | 写入 opencode auth 的 provider 名称。 | `deepseek` |
+| `PEN_AGENT_MODEL` | CLI 和 Dashboard 默认模型。 | `deepseek/deepseek-v4-flash` |
+| `PEN_AGENT_ATTACH_URL` | opencode 后端地址。 | `http://localhost:4096` |
+| `PEN_AGENT_AGENT` | 可选的 opencode agent 名称。 | 空 |
+| `DASHBOARD_HOST` | Dashboard API 监听地址。 | `127.0.0.1` |
+| `DASHBOARD_PORT` | Dashboard API 监听端口。 | `3000` |
+
+Dashboard 的 `/api/config` 只返回非敏感配置：
 
 ```json
 {
   "model": "deepseek/deepseek-v4-flash",
+  "agent": "",
   "attachUrl": "http://localhost:4096",
   "provider": "deepseek",
   "hasApiKey": true
 }
 ```
 
-The real API key is never returned to the frontend.
+真实 API key 不会返回给前端。
+
+## CLI 用法
+
+```bash
+node src/index.js [options]
+```
+
+| 参数 | 说明 | 默认值 |
+| --- | --- | --- |
+| `-t, --target <host>` | 目标主机或域名。 | `127.0.0.1` |
+| `-p, --port <port>` | 目标端口。 | `80` |
+| `-f, --flags <n>` | 最低期望 flag 数。 | `1` |
+| `--max-flags <n>` | 预估最大 flag 数。 | 不限制 |
+| `-m, --model <model>` | opencode 模型。 | `.env` 或项目默认值 |
+| `-a, --agent <agent>` | 指定 opencode agent。 | 空 |
+| `-k, --key <key>` | 写入 opencode auth 的 API key。 | 空 |
+| `--provider <name>` | provider 名称。 | `.env` 或 `deepseek` |
+| `--attach <url>` | opencode 后端地址。 | `.env` 或默认值 |
+| `--max-loops <n>` | 最大轮次数。 | `50` |
+| `--min-loops <n>` | 允许停滞停止前至少执行的轮次数。 | `3` |
+| `--stop-after-stale <n>` | 连续多少轮没有新发现后停止。 | `2` |
+| `--proxy-port <port>` | 本地代理服务端口。 | `9999` |
+| `--scope <mode>` | 公网边界策略：`entry-port`、`public-host`、`open`。 | `entry-port` |
+| `--no-private-pivot` | 禁止入口打通后的私网横向。 | 允许 |
+| `--artifact-dir <path>` | 运行产物目录。 | `./artifacts` |
+| `--pattern <regex>` | 自定义 flag 正则。 | 常见 flag 格式 |
+| `--resume` | 在当前状态基础上继续任务。 | 关闭 |
+| `--no-auto` | 关闭自动批准。 | 开启 |
+| `--status` | 查看当前 runner 状态。 | 关闭 |
 
 ## Dashboard
 
-The dashboard reads live runtime data from:
+Dashboard 后端由 `dashboard/server.js` 作为入口，辅助模块在 `dashboard/server/`：
 
-- `.pen-agent/state.json`
-- `.pen-agent/status.json`
-- `.pen-agent/stream.log`
-- `artifacts/flags.json`
-- `artifacts/flags.txt`
-- `artifacts/notes/`
-
-Main views:
-
-| View | Purpose |
+| 文件 | 作用 |
 | --- | --- |
-| Start | Configure and launch a task. |
-| Overview | Current status, key counters, recent actions, and logs. |
-| Topology | Discovered assets and relationships. |
-| Timeline | Round-by-round execution history. |
-| Findings | Hosts, services, credentials, access, and tactical intelligence. |
-| Evidence | Commands, tool calls, outputs, and evidence paths. |
-| Flags | Flag inventory and best-effort attribution. |
-| Notes | Operator notes from `artifacts/notes/`. |
-| Decisions | Next steps, problems, corrections, and reward evaluation. |
-| Team | Stage handoff and collaboration state. |
+| `dashboard/server.js` | HTTP API、任务启动/停止/恢复、运行历史归档、静态资源服务。 |
+| `dashboard/server/archives.js` | 实时数据、`history/` 历史运行和 `归档/` 旧演示快照的数据源选择。 |
+| `dashboard/server/fs-utils.js` | JSON 和文件读取工具。 |
+| `dashboard/server/http.js` | JSON 响应、请求 body、静态文件处理。 |
+| `dashboard/server/path-utils.js` | 历史运行 ID 和路径安全校验。 |
 
-Dashboard implementation notes are kept in [dashboard/README.md](dashboard/README.md).
+Dashboard 前端在 `dashboard/web/`，主要页面由 `dashboard/web/src/App.vue` 和 `dashboard/web/src/pages/` 组织。
 
-## Demo Archives
+| 页面 | 内容 |
+| --- | --- |
+| 启动 | 配置目标、scope、循环次数、flag 数、模型和 attach URL。 |
+| 总览 | 当前状态、flag 统计、最近动作、阻塞风险和原始日志。 |
+| 拓扑 | 根据 agent 发现的主机、服务、凭据和访问路径生成运行时资产关系图。 |
+| 时间线 | 按轮次展示 agent 执行摘要。 |
+| 发现 | 汇总 hosts、services、credentials、access 和 intel。 |
+| 证据 | 展示每轮调用的工具、命令、目的和影响。 |
+| Flags | 展示已发现 flag、来源、方法和证据。 |
+| 笔记 | 读取 `artifacts/notes/` 下的 Markdown 笔记。 |
+| 决策 | 展示下一步建议、问题、修正和奖励判断。 |
+| 协同 | 根据 whiteboard 推导阶段交接和协同状态。 |
 
-Historical demo data lives under:
+Dashboard 的实时数据来源：
 
 ```text
-归档/history/
+.pen-agent/state.json
+.pen-agent/status.json
+.pen-agent/stream.log
+artifacts/flags.json
+artifacts/flags.txt
+artifacts/notes/
 ```
 
-A snapshot can contain:
+## 本地 Docker 靶场
+
+本项目当前只维护一个本地 Docker 靶场：
 
 ```text
-归档/history/demo-name/
-├── archive.json
+docker/local-goad-topology/
+```
+
+它模拟一个 Linux 企业网络环境，包含 DMZ、Office / Ops、Core Services 三个网段，以及 ThinkPHP 入口节点、SSH 跳板、内网门户、Struts、Gogs、Mailpit、OpenLDAP、MariaDB、Redis、Samba、MinIO、CoreDNS 和若干 flag 文件。
+
+快速启动：
+
+```bash
+cd docker/local-goad-topology
+docker compose up -d --build
+```
+
+主要入口：
+
+| 入口 | 地址 | 说明 |
+| --- | --- | --- |
+| DMZ Web | `http://127.0.0.1:18080/` | ThinkPHP 入口站点。 |
+| SSH 跳板 | `ssh jumpop@127.0.0.1 -p 2222` | 进入 `jump01`，密码 `JumpPass123!`。 |
+| 内网工作站 | `docker exec -it lab-dev01 sh` | 进入 `dev01` 后可访问 Office/Core 服务。 |
+
+分区摘要：
+
+| 区域 | CIDR | 代表节点 |
+| --- | --- | --- |
+| DMZ | `10.80.10.0/24` | `thinkphp`, `jump01` |
+| Office / Ops | `10.80.20.0/24` | `intranet`, `wiki01`, `git01`, `mail01`, `dev01` |
+| Core Services | `10.80.30.0/24` | `ldap01`, `db01`, `cache01`, `files01`, `minio01`, `dns01` |
+
+完整的靶机分布、路由关系、账号、flag 位置、SSH 隧道、验证命令和清理方式见 [docker/local-goad-topology/README.md](docker/local-goad-topology/README.md)。
+
+静态靶场拓扑图只有一张，位置是 [docker/local-goad-topology/assets/topology.png](docker/local-goad-topology/assets/topology.png)。Dashboard 的“拓扑”页是运行时资产图，两者用途不同。
+
+## 历史数据与演示快照
+
+当前 Dashboard 有三类可读数据源：
+
+| 数据源 | 位置 | 说明 |
+| --- | --- | --- |
+| 实时运行 | `.pen-agent/`, `artifacts/` | 当前任务状态和产物。 |
+| 历史运行 | `history/` | Dashboard 启动/停止/恢复任务时自动归档的新运行快照，索引在 `history/runs.json`。 |
+| 旧演示归档 | `归档/` | 兼容早期手工整理的演示快照，例如 `归档/history/demo-*`。 |
+
+`history/` 和 `归档/` 都可能包含目标、日志、flag、路径和操作痕迹，默认不提交。
+
+推荐的快照结构：
+
+```text
+history/<run-id>/
 ├── .pen-agent/
 │   ├── state.json
 │   ├── status.json
@@ -274,159 +358,179 @@ A snapshot can contain:
     └── notes/*.md
 ```
 
-The dashboard archive selector automatically discovers these snapshots. Selecting an archive switches the UI to read-only replay mode. Starting a real task switches the dashboard back to live data.
+Dashboard 顶部的演示数据选择器会展示实时数据、`history/` 历史运行和 `归档/` 旧快照。选择快照后进入只读回放；启动真实任务时会自动切回实时数据。
 
-## CLI Usage
+## 测试与验证
 
-```bash
-node index.js [options]
-```
-
-| Option | Description | Default |
-| --- | --- | --- |
-| `-t, --target <host>` | Target host or domain. | `127.0.0.1` |
-| `-p, --port <port>` | Target port. | `80` |
-| `-f, --flags <n>` | Minimum expected flag count. | `1` |
-| `--max-flags <n>` | Estimated maximum flag count. | unlimited |
-| `-m, --model <model>` | opencode model. | `.env` or project default |
-| `-a, --agent <agent>` | Named opencode agent. | empty |
-| `-k, --key <key>` | API key to write into opencode auth. | empty |
-| `--provider <name>` | Provider name for opencode auth. | `.env` or `deepseek` |
-| `--attach <url>` | opencode backend URL. | `.env` or `http://localhost:4096` |
-| `--max-loops <n>` | Maximum loop count. | `50` |
-| `--min-loops <n>` | Minimum loops before stopping is allowed. | `3` |
-| `--stop-after-stale <n>` | Stop after this many rounds without new findings. | `2` |
-| `--proxy-port <port>` | Local proxy service port. | `9999` |
-| `--artifact-dir <path>` | Runtime artifact directory. | `./artifacts` |
-| `--pattern <regex>` | Custom flag regex. | common flag formats |
-| `--status` | Print current runner status. | off |
-
-## Project Structure
-
-```text
-.
-├── index.js                 # CLI entrypoint and runtime initialization
-├── config.js                # .env, CLI argument parsing, defaults, validation
-├── env-loader.js            # Small .env loader used by CLI and dashboard
-├── agent-loop.js            # Round-based orchestration loop
-├── runner.js                # opencode run wrapper and log streaming
-├── supervisor.js            # Structured extraction from agent output
-├── whiteboard.js            # Append-only state board
-├── flag-counter.js          # Flag scanning and deduplication
-├── flag-store.js            # Flag file persistence
-├── skill-router.js          # Skill selection support
-├── vulnerability-playbooks.js
-├── proxy/                   # Authorized lab proxy utilities
-├── dashboard/               # Node API and Vue dashboard
-├── docker/local-goad-topology/
-│   └── thinkphp/            # ThinkPHP lab target materials
-├── 归档/history/            # Replayable demo snapshots
-├── .pen-agent/              # Live state, ignored by git
-├── artifacts/               # Live artifacts, ignored by git
-└── logs/                    # Runtime logs, ignored by git
-```
-
-## Development
-
-Useful scripts:
+语法检查：
 
 ```bash
 npm run check
+```
+
+前端构建：
+
+```bash
 npm run dashboard:build
-npm run verify
-npm run dashboard:server
-npm run dashboard:dev
-npm run status
 ```
 
-Development conventions:
-
-- Keep secrets in `.env`, never in source files.
-- Keep runtime output inside `.pen-agent/`, `artifacts/`, or `logs/`.
-- Add dashboard API helpers in `dashboard/web/src/services/api.ts`.
-- Add dashboard pages in `dashboard/web/src/pages/`.
-- Add reusable frontend pieces in `dashboard/web/src/components/`.
-- Add demo snapshots as new directories under `归档/history/`.
-- Keep route handlers in `dashboard/server.js` thin and move reusable logic into named helpers.
-
-## Testing
-
-Run all available checks:
+全量验证：
 
 ```bash
 npm run verify
 ```
 
-This runs Node syntax checks and the Vue production build.
-
-Check whether local API configuration is loaded:
-
-```bash
-node -e "import('./config.js').then(({config}) => console.log({ hasKey: Boolean(config.apiKey), model: config.opencodeModel, attach: config.attachUrl, provider: config.authProvider }))"
-```
-
-Start the dashboard API and check key endpoints:
+Dashboard API 验证：
 
 ```bash
 npm run dashboard:server
-```
-
-```bash
 curl http://127.0.0.1:3000/api/health
 curl http://127.0.0.1:3000/api/config
 curl http://127.0.0.1:3000/api/archives
-curl -X POST http://127.0.0.1:3000/api/archives/select \
-  -H 'Content-Type: application/json' \
-  --data '{"id":"history/demo-03-full-chain"}'
+curl http://127.0.0.1:3000/api/history
 curl http://127.0.0.1:3000/api/flags
 ```
 
-Expected behavior:
+Docker 靶场验证见 [docker/local-goad-topology/README.md](docker/local-goad-topology/README.md) 的“验证环境”章节。
 
-- `/api/config` reports `hasApiKey`, but never returns the real API key.
-- Archive selection changes the displayed data source.
-- Starting a live task switches the dashboard back to live mode.
-- Frontend build completes without type errors.
+## 项目结构
 
-## Security And Ethics
+```text
+.
+├── README.md
+├── LICENSE
+├── package.json
+├── package-lock.json
+├── .env.example
+├── .gitignore
+├── opencode.json
+├── src/
+│   ├── index.js
+│   ├── config.js
+│   ├── env-loader.js
+│   ├── agent-loop.js
+│   ├── runner.js
+│   ├── supervisor.js
+│   ├── whiteboard.js
+│   ├── flag-counter.js
+│   ├── flag-store.js
+│   ├── stream-flag-scanner.js
+│   ├── skill-router.js
+│   └── vulnerability-playbooks.js
+├── dashboard/
+│   ├── server.js
+│   ├── dev.js
+│   ├── server/
+│   └── web/
+├── proxy/
+│   ├── proxy-server.js
+│   └── proxy-client.go
+├── docker/
+│   └── local-goad-topology/
+├── history/                 # 自动历史运行快照，默认忽略
+├── 归档/                    # 旧演示归档，默认忽略
+├── .pen-agent/              # 当前运行状态，默认忽略
+├── artifacts/               # 当前运行产物，默认忽略
+├── output/                  # 截图和报告输出，默认忽略
+└── test-results/            # 测试输出，默认忽略
+```
 
-Use this project only in:
+## 开发约定
 
-- Authorized CTFs and cyber ranges.
-- Internal systems you own.
-- Environments where you have explicit written permission to test.
-- Local development and replay demos.
+- 核心运行逻辑放在 `src/`。
+- Dashboard 后端入口保留在 `dashboard/server.js`，可复用逻辑放进 `dashboard/server/`。
+- Dashboard 前端页面放在 `dashboard/web/src/pages/`，通用组件放在 `dashboard/web/src/components/`。
+- 运行数据写入 `.pen-agent/`、`artifacts/`、`history/` 或 `logs/`，不要提交。
+- 旧演示快照放在 `归档/`，发布前确认不含敏感目标、私有 flag、真实路径或 API key。
+- 改动启动方式、配置项、目录结构、靶场拓扑或数据源时，同步更新 README。
+- 提交前运行 `npm run verify`。
 
-Do not use it against third-party systems, public targets, or any environment where authorization is unclear.
+## 安全与授权边界
 
-Operational safety expectations:
+允许使用的场景：
 
-- Define scope before starting a task.
-- Use conservative loop counts for demos.
-- Review generated commands and artifacts.
-- Do not commit secrets, live logs, or target-specific confidential data.
-- Treat proxy and pivoting utilities as lab-only features.
+- 授权 CTF。
+- 本地 Docker 靶场。
+- 自有系统。
+- 公司内部明确授权的安全演练。
+- 教学、答辩、演示和回放。
 
-## Roadmap
+禁止使用的场景：
 
-- Stabilize ThinkPHP-focused demo data and remove stale lab references.
-- Add stronger schema validation for runtime state and archive snapshots.
-- Add end-to-end dashboard smoke tests.
-- Improve topology layout controls and archive comparison.
-- Add a release checklist for packaging public demos.
+- 未授权公网目标。
+- 第三方系统。
+- 授权范围不清晰的目标。
+- 任何可能违反法律、合同或平台规则的环境。
 
-## Contributing
+操作建议：
 
-Contributions are welcome when they keep the project focused on authorized lab workflows.
+- 启动前先明确目标、端口、scope 和停止条件。
+- 演示时使用较小的 `--max-loops`。
+- 需要私网横向时，只在授权靶场里打开相关能力。
+- 复盘时优先看 Dashboard 的结构化数据，再检查原始日志。
+- 发布仓库前确认 `.env`、`.pen-agent/`、`artifacts/`、`history/`、`logs/` 和 `归档/` 没有敏感信息。
 
-Before opening a change:
+## 常见问题
 
-1. Run `npm run verify`.
-2. Keep secrets and runtime artifacts out of the patch.
-3. Update README or `dashboard/README.md` when behavior changes.
-4. Prefer small, reviewable changes over broad rewrites.
-5. Include sample archive data only when it is sanitized and safe to publish.
+### 仓库里是不是有两个靶场？
 
-## License
+不是。当前只有一个 Docker Compose 靶场：`docker/local-goad-topology/`。`docker/local-goad-topology/assets/topology.png` 是唯一静态靶场拓扑图。Dashboard 的“拓扑”页展示的是 agent 运行时发现的资产关系图，不是第二套靶场。
 
-This project is released under the [MIT License](LICENSE).
+### Dashboard 显示 Key 未配置
+
+确认项目根目录存在 `.env`，并且包含：
+
+```dotenv
+PEN_AGENT_API_KEY=<your-provider-api-key>
+```
+
+然后重启 `npm run dashboard:server`。
+
+### 启动任务后没有输出
+
+检查 `opencode` 是否已经启动：
+
+```bash
+opencode serve --port 4096
+```
+
+同时确认 `.env` 中的 `PEN_AGENT_ATTACH_URL` 和 CLI 的 `--attach` 指向同一个地址。
+
+### Dashboard 页面打不开
+
+开发模式访问：
+
+```text
+http://localhost:5173
+```
+
+生产构建后访问：
+
+```text
+http://127.0.0.1:3000
+```
+
+### 修改代码后怎么确认没坏
+
+```bash
+npm run verify
+npm run status
+```
+
+### 发布前怎么确认运行文件不会被提交
+
+```bash
+git check-ignore -v node_modules output test-results .pen-agent artifacts history logs 归档 归档.zip
+```
+
+## 后续计划
+
+- 增加 Dashboard 端到端 smoke test。
+- 给 `.pen-agent/state.json`、`history/` 和旧归档快照增加更严格的 schema 校验。
+- 优化运行时拓扑图布局和历史快照对比。
+- 补充 Docker 靶场的一键启动和清理脚本。
+- 增加发布前检查清单，减少敏感数据误提交风险。
+
+## 许可证
+
+本项目基于 [MIT License](LICENSE) 发布。
