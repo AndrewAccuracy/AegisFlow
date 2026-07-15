@@ -1,5 +1,6 @@
 import { createReadStream, existsSync, statSync } from "node:fs";
 import { extname, resolve } from "node:path";
+import { isPathInside } from "./path-utils.js";
 
 const contentTypes = {
   ".html": "text/html; charset=utf-8",
@@ -41,7 +42,7 @@ export function createStaticFileHandler(webDist) {
   return function staticFile(pathname, res) {
     const requested = pathname === "/" ? "/index.html" : pathname;
     const filePath = resolve(webDist, `.${requested}`);
-    if (!filePath.startsWith(webDist) || !existsSync(filePath) || statSync(filePath).isDirectory()) {
+    if (!isPathInside(webDist, filePath) || !existsSync(filePath) || statSync(filePath).isDirectory()) {
       res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
       res.end("Dashboard frontend is not built. Run npm --prefix dashboard/web run build first.");
       return;

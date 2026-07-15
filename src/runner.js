@@ -47,9 +47,12 @@ export class Runner {
 
   _spawn(promptPath, logPath, statusPath, hooks = {}) {
     return new Promise((resolvePromise) => {
-      const opencodeCmd = process.platform === "win32"
-        ? join(process.env.APPDATA || join(os.homedir(), "AppData", "Roaming"), "npm", "node_modules", "opencode-ai", "bin", "opencode.exe")
-        : "opencode";
+      const localOpencode = join(this.config.workDir, "node_modules", ".bin", process.platform === "win32" ? "opencode.cmd" : "opencode");
+      const opencodeCmd = existsSync(localOpencode)
+        ? localOpencode
+        : process.platform === "win32"
+          ? join(process.env.APPDATA || join(os.homedir(), "AppData", "Roaming"), "npm", "node_modules", "opencode-ai", "bin", "opencode.exe")
+          : "opencode";
       const args = ["run", "Execute only this round's scoped pentest plan, then stop and hand off.", "--file", promptPath];
       if (this.config.attachUrl) args.push("--attach", this.config.attachUrl);
       args.push("--dir", this.config.workDir);

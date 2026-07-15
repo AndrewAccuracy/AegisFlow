@@ -35,7 +35,7 @@ watch(
 
 const commandPreview = computed(() => {
   const args = [
-    "node index.js",
+    "node src/index.js",
     "--target", hostFromUrl(runForm.targetUrl),
     "--port", portFromUrl(runForm.targetUrl),
     "--flags", runForm.flagsNeeded,
@@ -81,7 +81,7 @@ function portFromUrl(input: string) {
 
 <template>
   <section class="start-layout">
-    <article class="panel launch-panel">
+    <article id="launch-config" class="panel launch-panel">
       <form class="launch-form" @submit.prevent="startRun">
         <label class="field field-full">
           <span>目标地址</span>

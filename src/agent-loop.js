@@ -5,7 +5,7 @@ import { FlagCounter } from "./flag-counter.js";
 import { FlagStore } from "./flag-store.js";
 import { Runner } from "./runner.js";
 import { StreamFlagScanner } from "./stream-flag-scanner.js";
-import { ProxyServer } from "./proxy/proxy-server.js";
+import { ProxyServer } from "../proxy/proxy-server.js";
 import { Whiteboard } from "./whiteboard.js";
 import { supervise } from "./supervisor.js";
 import { recommendSkills } from "./skill-router.js";

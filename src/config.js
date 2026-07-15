@@ -4,7 +4,8 @@ import { fileURLToPath } from "node:url";
 import { loadEnvFile } from "./env-loader.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-loadEnvFile(resolve(__dirname, ".env"));
+const projectRoot = resolve(__dirname, "..");
+loadEnvFile(resolve(projectRoot, ".env"));
 
 /**
  * Parse CLI arguments and merge them with local .env defaults.
@@ -25,7 +26,7 @@ function parseArgs() {
     attachUrl: process.env.PEN_AGENT_ATTACH_URL || "http://localhost:4096",
     apiKey: process.env.PEN_AGENT_API_KEY || process.env.DEEPSEEK_API_KEY || null,
     authProvider: process.env.PEN_AGENT_PROVIDER || "deepseek",
-    workDir: __dirname,
+    workDir: projectRoot,
     artifactDir: null,
     minLoops: 3,
     stopAfterStale: 2,
@@ -122,7 +123,7 @@ function printHelp() {
   console.log(`
 pen-agent - Automated penetration testing agent
 
-Usage: node index.js [options]
+Usage: node src/index.js [options]
 
 Options:
   -f, --flags <n>     Minimum number of flags needed for success (default: 1)
@@ -211,4 +212,5 @@ function dump(config) {
 }
 
 export const config = parseArgs();
-export { validate, dump, resolve, dirname, __dirname };
+export { validate, dump, resolve, dirname };
+export { projectRoot as __dirname };

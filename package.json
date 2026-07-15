@@ -3,19 +3,23 @@
   "version": "0.1.0",
   "description": "Automated penetration testing agent framework using opencode",
   "license": "MIT",
-  "main": "index.js",
+  "main": "src/index.js",
   "type": "module",
   "scripts": {
-    "start": "node index.js",
-    "status": "node index.js --status",
-    "check": "node --check env-loader.js && node --check config.js && node --check index.js && node --check agent-loop.js && node --check runner.js && node --check supervisor.js && node --check whiteboard.js && node --check dashboard/server.js && node --check dashboard/server/archives.js && node --check dashboard/server/fs-utils.js && node --check dashboard/server/http.js",
+    "start": "node src/index.js",
+    "status": "node src/index.js --status",
+    "check": "node --check src/env-loader.js && node --check src/config.js && node --check src/index.js && node --check src/agent-loop.js && node --check src/runner.js && node --check src/supervisor.js && node --check src/whiteboard.js && node --check src/flag-counter.js && node --check src/flag-store.js && node --check src/skill-router.js && node --check src/stream-flag-scanner.js && node --check src/vulnerability-playbooks.js && node --check dashboard/server.js && node --check dashboard/server/archives.js && node --check dashboard/server/fs-utils.js && node --check dashboard/server/http.js && node --check dashboard/server/path-utils.js",
     "dashboard:server": "node dashboard/server.js",
-    "dashboard:dev": "npm --prefix dashboard/web run dev",
+    "dashboard:dev": "node dashboard/dev.js",
     "dashboard:build": "npm --prefix dashboard/web run build",
     "verify": "npm run check && npm run dashboard:build",
     "proxy-server": "node proxy/proxy-server.js"
   },
   "dependencies": {
     "chalk": "^5.3.0"
+  },
+  "devDependencies": {
+    "opencode-ai": "^1.17.18",
+    "playwright": "^1.61.1"
   }
 }

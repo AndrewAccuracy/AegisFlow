@@ -10,6 +10,7 @@ node_modules/
 .pen-agent/
 artifacts/
 artifact-archive/
+history/
 logs/
 *.log
 

@@ -10,7 +10,7 @@ export const useRuntimeStore = defineStore("runtime", {
     assets: [] as AssetNode[],
     edges: [] as AssetEdge[],
     run: { running: false, active: null, recent: [] } as RunControlState,
-    archive: { selected: "live", selectedLabel: "实时数据", items: [] } as ArchiveState,
+    archive: { selected: "legacy/history/demo-03-full-chain", selectedLabel: "演示 03 · 完整链路", items: [] } as ArchiveState,
     runtimeConfig: { model: "deepseek/deepseek-v4-flash", attachUrl: "http://localhost:4096", provider: "deepseek", hasApiKey: false } as RuntimeConfigState,
     notes: [] as NoteFile[],
     activeNote: null as NoteContent | null,
@@ -46,7 +46,7 @@ export const useRuntimeStore = defineStore("runtime", {
         getJson<NoteFile[]>("/api/notes", []),
         getJson<TeamStatusState>("/api/teams", { teams: [] }),
         getJson<{ lines: string[] }>("/api/logs/tail?lines=120", { lines: [] }),
-        getJson<ArchiveState>("/api/archives", { selected: "live", items: [] }),
+        getJson<ArchiveState>("/api/archives", { selected: "legacy/history/demo-03-full-chain", selectedLabel: "演示 03 · 完整链路", items: [] }),
         getJson<RuntimeConfigState>("/api/config", { model: "deepseek/deepseek-v4-flash", attachUrl: "http://localhost:4096", provider: "deepseek", hasApiKey: false }),
       ]);
       const run = await getJson<RunControlState>("/api/run", { running: false, active: null, recent: [] });
@@ -116,6 +116,7 @@ export const useRuntimeStore = defineStore("runtime", {
         this.run = data.run || this.run;
         this.teams = data.teams || this.teams;
         this.archive = data.archive || this.archive;
+        this.runtimeConfig = data.runtimeConfig || this.runtimeConfig;
         this.assets = data.graph?.nodes || [];
         this.edges = data.graph?.edges || [];
         this.logLines = data.logLines || [];
